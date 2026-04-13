@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Modulkatalog – Studienübersicht</title>
+  <title>ESE Modulkatalog – TU Darmstadt</title>
   <style>
     :root {
       --bg-primary: #ffffff;
@@ -18,6 +18,8 @@
       --accent-blue-bg: #eff6ff;
       --accent-green: #22c55e;
       --accent-green-bg: #f0fdf4;
+      --accent-amber: #f59e0b;
+      --accent-amber-bg: #fffbeb;
       --radius-md: 8px;
       --radius-lg: 12px;
     }
@@ -35,6 +37,8 @@
         --accent-blue-bg: #1e3a5f;
         --accent-green: #4ade80;
         --accent-green-bg: #14532d;
+        --accent-amber: #fbbf24;
+        --accent-amber-bg: #78350f;
       }
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -46,7 +50,7 @@
       min-height: 100vh;
     }
     .container {
-      max-width: 900px;
+      max-width: 1000px;
       margin: 0 auto;
       padding: 2rem 1.5rem;
     }
@@ -58,8 +62,23 @@
     .subtitle {
       color: var(--text-secondary);
       font-size: 14px;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
     }
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-secondary);
+    }
+    .loading-spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border-light);
+      border-top-color: var(--accent-blue);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .stats {
       display: flex;
       gap: 12px;
@@ -83,13 +102,57 @@
       color: var(--text-secondary);
       margin-top: 2px;
     }
-    .cat-grid {
+    .search-box {
+      margin-bottom: 1.5rem;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 15px;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-box input:focus {
+      border-color: var(--accent-blue);
+    }
+    .search-box input::placeholder {
+      color: var(--text-tertiary);
+    }
+    .filters {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 6px 14px;
+      font-size: 13px;
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-btn:hover {
+      border-color: var(--border-medium);
+    }
+    .filter-btn.active {
+      background: var(--accent-blue);
+      color: white;
+      border-color: var(--accent-blue);
+    }
+    .hauptbereich-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 12px;
       margin-bottom: 2rem;
     }
-    .cat-card {
+    .hauptbereich-card {
       background: var(--bg-primary);
       border: 1px solid var(--border-light);
       border-radius: var(--radius-lg);
@@ -97,17 +160,20 @@
       cursor: pointer;
       transition: border-color 0.15s, transform 0.1s, box-shadow 0.15s;
     }
-    .cat-card:hover {
+    .hauptbereich-card:hover {
       border-color: var(--border-medium);
       box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
-    .cat-card:active { transform: scale(0.98); }
-    .cat-title {
+    .hauptbereich-card:active { transform: scale(0.98); }
+    .hauptbereich-card.active {
+      border: 2px solid var(--accent-blue);
+    }
+    .hauptbereich-title {
       font-size: 15px;
       font-weight: 500;
       margin-bottom: 4px;
     }
-    .cat-count {
+    .hauptbereich-count {
       font-size: 12px;
       color: var(--text-secondary);
     }
@@ -127,8 +193,8 @@
     .breadcrumb .link:hover { text-decoration: underline; }
     .breadcrumb .sep { color: var(--text-tertiary); }
     .breadcrumb .current { color: var(--text-primary); }
-    .cluster-section { margin-bottom: 1.5rem; }
-    .cluster-title {
+    .unterbereich-section { margin-bottom: 1.5rem; }
+    .unterbereich-title {
       font-size: 13px;
       font-weight: 500;
       color: var(--text-secondary);
@@ -137,10 +203,20 @@
       margin-bottom: 10px;
       padding-bottom: 8px;
       border-bottom: 1px solid var(--border-light);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .unterbereich-kapitel {
+      font-weight: 400;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      text-transform: none;
+      letter-spacing: 0;
     }
     .module-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 10px;
     }
     .module-card {
@@ -159,10 +235,25 @@
       border-color: var(--accent-blue);
       box-shadow: 0 0 0 3px var(--accent-blue-bg);
     }
+    .module-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
     .module-name {
       font-size: 14px;
       font-weight: 500;
-      margin-bottom: 6px;
+      flex: 1;
+    }
+    .module-kapitel {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      background: var(--bg-secondary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
     }
     .module-meta {
       font-size: 12px;
@@ -186,6 +277,10 @@
       background: var(--accent-green-bg);
       color: var(--accent-green);
     }
+    .badge-both {
+      background: var(--accent-amber-bg);
+      color: var(--accent-amber);
+    }
     .detail-panel {
       background: var(--bg-primary);
       border: 1px solid var(--border-light);
@@ -202,6 +297,11 @@
     .detail-title {
       font-size: 17px;
       font-weight: 600;
+    }
+    .detail-kapitel {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: 4px;
     }
     .detail-close {
       background: var(--bg-secondary);
@@ -243,409 +343,350 @@
       padding-top: 1rem;
       border-top: 1px solid var(--border-light);
     }
-    .edit-info {
-      background: var(--bg-primary);
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-md);
-      padding: 1rem 1.25rem;
-      margin-top: 2rem;
-    }
-    .edit-info summary {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      cursor: pointer;
-      list-style: none;
-    }
-    .edit-info summary::-webkit-details-marker { display: none; }
-    .edit-info summary::before { content: "▶ "; font-size: 10px; }
-    .edit-info[open] summary::before { content: "▼ "; }
-    .edit-info p {
-      font-size: 13px;
-      color: var(--text-secondary);
-      margin-top: 0.75rem;
-      line-height: 1.6;
-    }
-    .edit-info code {
-      font-family: "SF Mono", Monaco, monospace;
-      font-size: 12px;
-      background: var(--bg-secondary);
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-    .edit-info pre {
-      font-family: "SF Mono", Monaco, monospace;
-      font-size: 12px;
-      background: var(--bg-secondary);
+    .error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
       padding: 1rem;
       border-radius: var(--radius-md);
-      overflow-x: auto;
-      margin-top: 0.75rem;
-      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+    @media (prefers-color-scheme: dark) {
+      .error {
+        background: #450a0a;
+        border-color: #7f1d1d;
+        color: #fecaca;
+      }
+    }
+    .data-source {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-light);
+    }
+    .data-source a {
+      color: var(--accent-blue);
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Modulkatalog</h1>
-    <p class="subtitle">Interdisziplinäre Studienübersicht – klicke auf einen Fachbereich</p>
-    <div id="app"></div>
+    <h1>ESE Modulkatalog</h1>
+    <p class="subtitle">M.Sc. Energy Science and Engineering – TU Darmstadt</p>
+    <div id="app">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        <div>Lade Module aus Google Sheets...</div>
+      </div>
+    </div>
   </div>
 
 <script>
-// =====================================================
-// HIER DEINE MODULE ANPASSEN
-// =====================================================
-const DATA = {
-  fachbereiche: [
-    {
-      id: "energie",
-      name: "Energietechnik",
-      cluster: [
-        {
-          name: "Thermodynamik & Wärme",
-          module: [
-            { 
-              id: "e1", 
-              name: "Technische Thermodynamik I", 
-              cp: 6, 
-              semester: "WS", 
-              prof: "Prof. Dr. Müller", 
-              desc: "Grundlagen der Thermodynamik: Zustandsgrößen, Hauptsätze, ideale Gase, Kreisprozesse." 
-            },
-            { 
-              id: "e2", 
-              name: "Wärmeübertragung", 
-              cp: 5, 
-              semester: "SS", 
-              prof: "Prof. Dr. Schmidt", 
-              desc: "Konvektion, Leitung, Strahlung. Wärmetauscher-Auslegung." 
-            }
-          ]
-        },
-        {
-          name: "Erneuerbare Energien",
-          module: [
-            { 
-              id: "e3", 
-              name: "Photovoltaik & Solarthermie", 
-              cp: 6, 
-              semester: "SS", 
-              prof: "Prof. Dr. Weber", 
-              desc: "Physik der Solarzelle, Systemauslegung, thermische Kollektoren." 
-            },
-            { 
-              id: "e4", 
-              name: "Windenergieanlagen", 
-              cp: 5, 
-              semester: "WS", 
-              prof: "Prof. Dr. Fischer", 
-              desc: "Aerodynamik, Generatoren, Netzintegration." 
-            }
-          ]
-        }
-      ]
-    },
-    {
-      id: "maschinenbau",
-      name: "Maschinenbau",
-      cluster: [
-        {
-          name: "Konstruktion",
-          module: [
-            { 
-              id: "m1", 
-              name: "Maschinenelemente I", 
-              cp: 6, 
-              semester: "WS", 
-              prof: "Prof. Dr. Bauer", 
-              desc: "Verbindungselemente, Wellen, Lager, Kupplungen." 
-            },
-            { 
-              id: "m2", 
-              name: "CAD & Digitale Produktentwicklung", 
-              cp: 5, 
-              semester: "SS", 
-              prof: "Prof. Dr. Klein", 
-              desc: "3D-Modellierung, parametrische Konstruktion, PLM-Grundlagen." 
-            }
-          ]
-        },
-        {
-          name: "Fertigung",
-          module: [
-            { 
-              id: "m3", 
-              name: "Fertigungstechnik", 
-              cp: 6, 
-              semester: "WS", 
-              prof: "Prof. Dr. Hoffmann", 
-              desc: "Urformen, Umformen, Trennen, Fügen. Prozessplanung." 
-            }
-          ]
-        }
-      ]
-    },
-    {
-      id: "informatik",
-      name: "Informatik",
-      cluster: [
-        {
-          name: "Programmierung",
-          module: [
-            { 
-              id: "i1", 
-              name: "Einführung in die Programmierung", 
-              cp: 6, 
-              semester: "WS", 
-              prof: "Prof. Dr. Lang", 
-              desc: "Python/Java Grundlagen, Algorithmen, Datenstrukturen." 
-            },
-            { 
-              id: "i2", 
-              name: "Softwaretechnik", 
-              cp: 5, 
-              semester: "SS", 
-              prof: "Prof. Dr. Krause", 
-              desc: "Software-Engineering, Versionierung, Testing, Architekturmuster." 
-            }
-          ]
-        },
-        {
-          name: "Daten & KI",
-          module: [
-            { 
-              id: "i3", 
-              name: "Machine Learning Grundlagen", 
-              cp: 6, 
-              semester: "SS", 
-              prof: "Prof. Dr. Neumann", 
-              desc: "Supervised/Unsupervised Learning, neuronale Netze, Evaluation." 
-            }
-          ]
-        }
-      ]
-    },
-    {
-      id: "wirtschaft",
-      name: "Wirtschaftswissenschaften",
-      cluster: [
-        {
-          name: "Management",
-          module: [
-            { 
-              id: "w1", 
-              name: "Unternehmensführung", 
-              cp: 5, 
-              semester: "WS", 
-              prof: "Prof. Dr. Richter", 
-              desc: "Strategisches Management, Organisationstheorie, Leadership." 
-            },
-            { 
-              id: "w2", 
-              name: "Projektmanagement", 
-              cp: 4, 
-              semester: "SS", 
-              prof: "Prof. Dr. Wagner", 
-              desc: "Agile & klassische Methoden, Ressourcenplanung, Risikomanagement." 
-            }
-          ]
-        },
-        {
-          name: "Finance",
-          module: [
-            { 
-              id: "w3", 
-              name: "Investition & Finanzierung", 
-              cp: 6, 
-              semester: "WS", 
-              prof: "Prof. Dr. Schulz", 
-              desc: "Kapitalwertmethode, Finanzierungsformen, Portfoliotheorie." 
-            }
-          ]
-        }
-      ]
-    },
-    {
-      id: "recht",
-      name: "Recht & Regulierung",
-      cluster: [
-        {
-          name: "Wirtschaftsrecht",
-          module: [
-            { 
-              id: "r1", 
-              name: "Vertragsrecht", 
-              cp: 4, 
-              semester: "WS", 
-              prof: "Prof. Dr. Berger", 
-              desc: "BGB Allgemeiner Teil, Schuldrecht, Vertragsgestaltung." 
-            },
-            { 
-              id: "r2", 
-              name: "Datenschutzrecht", 
-              cp: 3, 
-              semester: "SS", 
-              prof: "Prof. Dr. Keller", 
-              desc: "DSGVO, ePrivacy, Compliance in der Praxis." 
-            }
-          ]
-        }
-      ]
-    },
-    {
-      id: "nachhaltigkeit",
-      name: "Nachhaltigkeit & Umwelt",
-      cluster: [
-        {
-          name: "Umwelttechnik",
-          module: [
-            { 
-              id: "n1", 
-              name: "Umweltmanagement", 
-              cp: 5, 
-              semester: "SS", 
-              prof: "Prof. Dr. Lorenz", 
-              desc: "ISO 14001, Ökobilanzen, Kreislaufwirtschaft." 
-            },
-            { 
-              id: "n2", 
-              name: "Nachhaltige Produktion", 
-              cp: 5, 
-              semester: "WS", 
-              prof: "Prof. Dr. Braun", 
-              desc: "Ressourceneffizienz, Life Cycle Assessment, Green Manufacturing." 
-            }
-          ]
-        }
-      ]
+// Google Sheets ID und Sheet Name
+const SHEET_ID = '1Mjd4XtywCdnTFlN8lox20KR5Z2qhf1tr7z5u12f-cO4';
+const SHEET_NAME = 'Tabellenblatt1';
+
+// CSV aus Google Sheets laden (öffentlich geteilt)
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+let modules = [];
+let state = { view: 'overview', hauptbereich: null, modul: null, search: '', semesterFilter: 'all' };
+
+// CSV Parser
+function parseCSV(csv) {
+  const lines = csv.split('\n');
+  const headers = parseCSVLine(lines[0]);
+  const data = [];
+  
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const values = parseCSVLine(lines[i]);
+    const row = {};
+    headers.forEach((h, idx) => {
+      row[h.trim()] = values[idx] ? values[idx].trim() : '';
+    });
+    data.push(row);
+  }
+  return data;
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += char;
     }
-  ]
-};
-// =====================================================
-
-let state = { view: 'overview', fachbereich: null, modul: null };
-
-function countModules(fb) {
-  return fb.cluster.reduce((sum, c) => sum + c.module.length, 0);
+  }
+  result.push(current);
+  return result;
 }
 
-function totalModules() {
-  return DATA.fachbereiche.reduce((sum, fb) => sum + countModules(fb), 0);
+// Daten laden
+async function loadData() {
+  try {
+    const response = await fetch(SHEET_URL);
+    if (!response.ok) throw new Error('Fehler beim Laden');
+    const csv = await response.text();
+    const data = parseCSV(csv);
+    
+    modules = data.map(row => ({
+      kapitel: row['Kapitel'] || '',
+      hauptbereich: row['Hauptbereich'] || '',
+      unterbereich: row['Unterbereich'] || '',
+      name: row['Modulname'] || '',
+      modul_nr: row['Modul-Nr.'] || '',
+      cp: row['CP'] || '',
+      semester: row['Semester'] || '',
+      sprache: row['Sprache'] || '',
+      prof: row['Dozent/in'] || '',
+      beschreibung: row['Beschreibung'] || ''
+    })).filter(m => m.name);
+    
+    render();
+  } catch (err) {
+    document.getElementById('app').innerHTML = `
+      <div class="error">
+        <strong>Fehler beim Laden der Daten:</strong> ${err.message}<br>
+        Stelle sicher, dass das Google Sheet für "Jeder mit dem Link" freigegeben ist.
+      </div>
+    `;
+  }
 }
 
-function totalCP() {
-  return DATA.fachbereiche.reduce((sum, fb) => 
-    sum + fb.cluster.reduce((s, c) => s + c.module.reduce((ss, m) => ss + m.cp, 0), 0), 0);
+// Hilfsfunktionen
+function getHauptbereiche() {
+  const hb = {};
+  modules.forEach(m => {
+    if (!hb[m.hauptbereich]) {
+      hb[m.hauptbereich] = { count: 0, kapitelPrefix: m.kapitel.split('.')[0] };
+    }
+    hb[m.hauptbereich].count++;
+  });
+  return hb;
 }
 
+function getFilteredModules() {
+  let filtered = modules;
+  
+  if (state.hauptbereich) {
+    filtered = filtered.filter(m => m.hauptbereich === state.hauptbereich);
+  }
+  
+  if (state.search) {
+    const s = state.search.toLowerCase();
+    filtered = filtered.filter(m => 
+      m.name.toLowerCase().includes(s) ||
+      m.beschreibung.toLowerCase().includes(s) ||
+      m.prof.toLowerCase().includes(s) ||
+      m.kapitel.includes(s)
+    );
+  }
+  
+  if (state.semesterFilter !== 'all') {
+    filtered = filtered.filter(m => m.semester.includes(state.semesterFilter));
+  }
+  
+  return filtered;
+}
+
+function groupByUnterbereich(mods) {
+  const groups = {};
+  mods.forEach(m => {
+    const key = m.unterbereich || '(Allgemein)';
+    if (!groups[key]) {
+      groups[key] = { modules: [], kapitel: m.kapitel };
+    }
+    groups[key].modules.push(m);
+  });
+  return groups;
+}
+
+function getSemesterBadgeClass(sem) {
+  if (sem === 'WS') return 'badge-ws';
+  if (sem === 'SS') return 'badge-ss';
+  if (sem === 'WS+SS') return 'badge-both';
+  return '';
+}
+
+// Render
 function render() {
   const app = document.getElementById('app');
+  const filtered = getFilteredModules();
   
   if (state.view === 'overview') {
+    const hb = getHauptbereiche();
+    const totalCP = modules.reduce((sum, m) => sum + (parseInt(m.cp) || 0), 0);
+    
     app.innerHTML = `
       <div class="stats">
-        <div class="stat"><div class="stat-value">${DATA.fachbereiche.length}</div><div class="stat-label">Fachbereiche</div></div>
-        <div class="stat"><div class="stat-value">${totalModules()}</div><div class="stat-label">Module gesamt</div></div>
-        <div class="stat"><div class="stat-value">${totalCP()}</div><div class="stat-label">CP verfügbar</div></div>
+        <div class="stat"><div class="stat-value">${Object.keys(hb).length}</div><div class="stat-label">Hauptbereiche</div></div>
+        <div class="stat"><div class="stat-value">${modules.length}</div><div class="stat-label">Module gesamt</div></div>
+        <div class="stat"><div class="stat-value">${totalCP}</div><div class="stat-label">CP verfügbar</div></div>
       </div>
-      <div class="cat-grid">
-        ${DATA.fachbereiche.map(fb => `
-          <div class="cat-card" onclick="selectFachbereich('${fb.id}')">
-            <div class="cat-title">${fb.name}</div>
-            <div class="cat-count">${countModules(fb)} Module · ${fb.cluster.length} Themen</div>
-          </div>
-        `).join('')}
+      
+      <div class="search-box">
+        <input type="text" placeholder="Module durchsuchen (Name, Dozent, Beschreibung, Kapitel...)" 
+               value="${state.search}" oninput="updateSearch(this.value)">
       </div>
-      <details class="edit-info">
-        <summary>Wie kann ich die Module anpassen?</summary>
-        <p>Öffne diese Datei in einem Texteditor und finde den Abschnitt <code>const DATA = { ... }</code>. Dort kannst du Fachbereiche, Cluster und Module hinzufügen oder ändern.</p>
-        <p>Jedes Modul hat diese Felder:</p>
-        <pre>{
-  id: "eindeutige-id",
-  name: "Modulname",
-  cp: 6,
-  semester: "WS",  // oder "SS"
-  prof: "Prof. Dr. Name",
-  desc: "Beschreibung..."
-}</pre>
-      </details>
+      
+      <div class="filters">
+        <button class="filter-btn ${state.semesterFilter === 'all' ? 'active' : ''}" onclick="setSemesterFilter('all')">Alle Semester</button>
+        <button class="filter-btn ${state.semesterFilter === 'WS' ? 'active' : ''}" onclick="setSemesterFilter('WS')">Wintersemester</button>
+        <button class="filter-btn ${state.semesterFilter === 'SS' ? 'active' : ''}" onclick="setSemesterFilter('SS')">Sommersemester</button>
+      </div>
+      
+      ${state.search || state.semesterFilter !== 'all' ? `
+        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 1rem;">
+          ${filtered.length} Module gefunden
+        </p>
+        <div class="module-grid">
+          ${filtered.map(m => renderModuleCard(m)).join('')}
+        </div>
+      ` : `
+        <div class="hauptbereich-grid">
+          ${Object.entries(hb).map(([name, data]) => `
+            <div class="hauptbereich-card" onclick="selectHauptbereich('${name.replace(/'/g, "\\'")}')">
+              <div class="hauptbereich-title">${name}</div>
+              <div class="hauptbereich-count">${data.count} Module</div>
+            </div>
+          `).join('')}
+        </div>
+      `}
+      
+      ${state.modul ? renderDetail() : ''}
+      
+      <div class="data-source">
+        Datenquelle: <a href="https://docs.google.com/spreadsheets/d/${SHEET_ID}" target="_blank">Google Sheet</a> · 
+        Basierend auf dem Modulhandbuch M.Sc. ESE (PO 2023)
+      </div>
     `;
-  } else if (state.view === 'fachbereich') {
-    const fb = DATA.fachbereiche.find(f => f.id === state.fachbereich);
+  } else if (state.view === 'hauptbereich') {
+    const grouped = groupByUnterbereich(filtered);
+    
     app.innerHTML = `
       <div class="breadcrumb">
-        <span class="link" onclick="goOverview()">Alle Fachbereiche</span>
+        <span class="link" onclick="goOverview()">Alle Hauptbereiche</span>
         <span class="sep">›</span>
-        <span class="current">${fb.name}</span>
+        <span class="current">${state.hauptbereich}</span>
       </div>
-      ${fb.cluster.map(cluster => `
-        <div class="cluster-section">
-          <div class="cluster-title">${cluster.name}</div>
+      
+      <div class="search-box">
+        <input type="text" placeholder="In diesem Bereich suchen..." 
+               value="${state.search}" oninput="updateSearch(this.value)">
+      </div>
+      
+      <div class="filters">
+        <button class="filter-btn ${state.semesterFilter === 'all' ? 'active' : ''}" onclick="setSemesterFilter('all')">Alle</button>
+        <button class="filter-btn ${state.semesterFilter === 'WS' ? 'active' : ''}" onclick="setSemesterFilter('WS')">WS</button>
+        <button class="filter-btn ${state.semesterFilter === 'SS' ? 'active' : ''}" onclick="setSemesterFilter('SS')">SS</button>
+      </div>
+      
+      ${Object.entries(grouped).sort((a, b) => a[1].kapitel.localeCompare(b[1].kapitel)).map(([unterbereich, data]) => `
+        <div class="unterbereich-section">
+          <div class="unterbereich-title">
+            <span>${unterbereich}</span>
+            <span class="unterbereich-kapitel">${data.kapitel}</span>
+          </div>
           <div class="module-grid">
-            ${cluster.module.map(m => `
-              <div class="module-card ${state.modul === m.id ? 'selected' : ''}" onclick="selectModul('${m.id}')">
-                <div class="module-name">${m.name}</div>
-                <div class="module-meta">
-                  <span class="badge ${m.semester === 'WS' ? 'badge-ws' : 'badge-ss'}">${m.semester}</span>
-                  <span>${m.cp} CP</span>
-                  <span>${m.prof}</span>
-                </div>
-              </div>
-            `).join('')}
+            ${data.modules.map(m => renderModuleCard(m)).join('')}
           </div>
         </div>
       `).join('')}
+      
       ${state.modul ? renderDetail() : ''}
     `;
   }
 }
 
+function renderModuleCard(m) {
+  return `
+    <div class="module-card ${state.modul === m.name ? 'selected' : ''}" 
+         onclick="selectModul('${m.name.replace(/'/g, "\\'")}')">
+      <div class="module-header">
+        <div class="module-name">${m.name}</div>
+        <div class="module-kapitel">${m.kapitel}</div>
+      </div>
+      <div class="module-meta">
+        ${m.semester ? `<span class="badge ${getSemesterBadgeClass(m.semester)}">${m.semester}</span>` : ''}
+        ${m.cp ? `<span>${m.cp} CP</span>` : ''}
+        ${m.sprache ? `<span>${m.sprache}</span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
 function renderDetail() {
-  const fb = DATA.fachbereiche.find(f => f.id === state.fachbereich);
-  let modul = null;
-  for (const c of fb.cluster) {
-    modul = c.module.find(m => m.id === state.modul);
-    if (modul) break;
-  }
-  if (!modul) return '';
+  const m = modules.find(mod => mod.name === state.modul);
+  if (!m) return '';
+  
   return `
     <div class="detail-panel">
       <div class="detail-header">
-        <h3 class="detail-title">${modul.name}</h3>
+        <div>
+          <h3 class="detail-title">${m.name}</h3>
+          <div class="detail-kapitel">Kapitel ${m.kapitel} · ${m.hauptbereich}${m.unterbereich ? ' › ' + m.unterbereich : ''}</div>
+        </div>
         <button class="detail-close" onclick="closeDetail()">×</button>
       </div>
       <div class="detail-grid">
         <div class="detail-item">
           <div class="detail-label">Credit Points</div>
-          <div class="detail-value">${modul.cp} CP</div>
+          <div class="detail-value">${m.cp || '–'} CP</div>
         </div>
         <div class="detail-item">
           <div class="detail-label">Semester</div>
-          <div class="detail-value">${modul.semester === 'WS' ? 'Wintersemester' : 'Sommersemester'}</div>
+          <div class="detail-value">${m.semester === 'WS' ? 'Wintersemester' : m.semester === 'SS' ? 'Sommersemester' : m.semester === 'WS+SS' ? 'Beide Semester' : '–'}</div>
         </div>
         <div class="detail-item">
-          <div class="detail-label">Dozent/in</div>
-          <div class="detail-value">${modul.prof}</div>
+          <div class="detail-label">Sprache</div>
+          <div class="detail-value">${m.sprache || '–'}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Modul-Nr.</div>
+          <div class="detail-value">${m.modul_nr || '–'}</div>
         </div>
       </div>
-      <div class="detail-desc">${modul.desc}</div>
+      ${m.prof ? `
+        <div class="detail-item" style="margin-bottom: 1rem;">
+          <div class="detail-label">Dozent/in</div>
+          <div class="detail-value">${m.prof}</div>
+        </div>
+      ` : ''}
+      ${m.beschreibung ? `
+        <div class="detail-desc">${m.beschreibung}</div>
+      ` : ''}
     </div>
   `;
 }
 
+// Event Handler
 function goOverview() {
-  state = { view: 'overview', fachbereich: null, modul: null };
+  state = { view: 'overview', hauptbereich: null, modul: null, search: '', semesterFilter: 'all' };
   render();
 }
 
-function selectFachbereich(id) {
-  state = { view: 'fachbereich', fachbereich: id, modul: null };
+function selectHauptbereich(name) {
+  state = { view: 'hauptbereich', hauptbereich: name, modul: null, search: '', semesterFilter: 'all' };
   render();
 }
 
-function selectModul(id) {
-  state.modul = id;
+function selectModul(name) {
+  state.modul = name;
   render();
   setTimeout(() => {
     document.querySelector('.detail-panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -657,7 +698,20 @@ function closeDetail() {
   render();
 }
 
-render();
+function updateSearch(value) {
+  state.search = value;
+  state.modul = null;
+  render();
+}
+
+function setSemesterFilter(filter) {
+  state.semesterFilter = filter;
+  state.modul = null;
+  render();
+}
+
+// Start
+loadData();
 </script>
 </body>
 </html>
