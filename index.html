@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modulkatalog – Studienübersicht</title>
+  <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f5f5f4;
+      --bg-tertiary: #e7e5e4;
+      --text-primary: #1c1917;
+      --text-secondary: #57534e;
+      --text-tertiary: #a8a29e;
+      --border-light: rgba(0,0,0,0.08);
+      --border-medium: rgba(0,0,0,0.15);
+      --accent-blue: #3b82f6;
+      --accent-blue-bg: #eff6ff;
+      --accent-green: #22c55e;
+      --accent-green-bg: #f0fdf4;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1c1917;
+        --bg-secondary: #292524;
+        --bg-tertiary: #44403c;
+        --text-primary: #fafaf9;
+        --text-secondary: #a8a29e;
+        --text-tertiary: #78716c;
+        --border-light: rgba(255,255,255,0.08);
+        --border-medium: rgba(255,255,255,0.15);
+        --accent-blue: #60a5fa;
+        --accent-blue-bg: #1e3a5f;
+        --accent-green: #4ade80;
+        --accent-green-bg: #14532d;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 2rem;
+    }
+    .stats {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .stat {
+      background: var(--bg-primary);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      min-width: 110px;
+      border: 1px solid var(--border-light);
+    }
+    .stat-value {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 2rem;
+    }
+    .cat-card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+    }
+    .cat-card:hover {
+      border-color: var(--border-medium);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .cat-card:active { transform: scale(0.98); }
+    .cat-title {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .cat-count {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .breadcrumb {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .breadcrumb .link {
+      cursor: pointer;
+      color: var(--accent-blue);
+    }
+    .breadcrumb .link:hover { text-decoration: underline; }
+    .breadcrumb .sep { color: var(--text-tertiary); }
+    .breadcrumb .current { color: var(--text-primary); }
+    .cluster-section { margin-bottom: 1.5rem; }
+    .cluster-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 10px;
+    }
+    .module-card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .module-card:hover {
+      border-color: var(--border-medium);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .module-card.selected {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px var(--accent-blue-bg);
+    }
+    .module-name {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .module-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .badge-ws {
+      background: var(--accent-blue-bg);
+      color: var(--accent-blue);
+    }
+    .badge-ss {
+      background: var(--accent-green-bg);
+      color: var(--accent-green);
+    }
+    .detail-panel {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      margin-top: 1.25rem;
+    }
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+    .detail-title {
+      font-size: 17px;
+      font-weight: 600;
+    }
+    .detail-close {
+      background: var(--bg-secondary);
+      border: none;
+      font-size: 18px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .detail-close:hover { background: var(--bg-tertiary); }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 1rem;
+    }
+    .detail-item {}
+    .detail-label {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 2px;
+    }
+    .detail-value {
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    .detail-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-light);
+    }
+    .edit-info {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      margin-top: 2rem;
+    }
+    .edit-info summary {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      list-style: none;
+    }
+    .edit-info summary::-webkit-details-marker { display: none; }
+    .edit-info summary::before { content: "▶ "; font-size: 10px; }
+    .edit-info[open] summary::before { content: "▼ "; }
+    .edit-info p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 0.75rem;
+      line-height: 1.6;
+    }
+    .edit-info code {
+      font-family: "SF Mono", Monaco, monospace;
+      font-size: 12px;
+      background: var(--bg-secondary);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .edit-info pre {
+      font-family: "SF Mono", Monaco, monospace;
+      font-size: 12px;
+      background: var(--bg-secondary);
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      margin-top: 0.75rem;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Modulkatalog</h1>
+    <p class="subtitle">Interdisziplinäre Studienübersicht – klicke auf einen Fachbereich</p>
+    <div id="app"></div>
+  </div>
+
+<script>
+// =====================================================
+// HIER DEINE MODULE ANPASSEN
+// =====================================================
+const DATA = {
+  fachbereiche: [
+    {
+      id: "energie",
+      name: "Energietechnik",
+      cluster: [
+        {
+          name: "Thermodynamik & Wärme",
+          module: [
+            { 
+              id: "e1", 
+              name: "Technische Thermodynamik I", 
+              cp: 6, 
+              semester: "WS", 
+              prof: "Prof. Dr. Müller", 
+              desc: "Grundlagen der Thermodynamik: Zustandsgrößen, Hauptsätze, ideale Gase, Kreisprozesse." 
+            },
+            { 
+              id: "e2", 
+              name: "Wärmeübertragung", 
+              cp: 5, 
+              semester: "SS", 
+              prof: "Prof. Dr. Schmidt", 
+              desc: "Konvektion, Leitung, Strahlung. Wärmetauscher-Auslegung." 
+            }
+          ]
+        },
+        {
+          name: "Erneuerbare Energien",
+          module: [
+            { 
+              id: "e3", 
+              name: "Photovoltaik & Solarthermie", 
+              cp: 6, 
+              semester: "SS", 
+              prof: "Prof. Dr. Weber", 
+              desc: "Physik der Solarzelle, Systemauslegung, thermische Kollektoren." 
+            },
+            { 
+              id: "e4", 
+              name: "Windenergieanlagen", 
+              cp: 5, 
+              semester: "WS", 
+              prof: "Prof. Dr. Fischer", 
+              desc: "Aerodynamik, Generatoren, Netzintegration." 
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "maschinenbau",
+      name: "Maschinenbau",
+      cluster: [
+        {
+          name: "Konstruktion",
+          module: [
+            { 
+              id: "m1", 
+              name: "Maschinenelemente I", 
+              cp: 6, 
+              semester: "WS", 
+              prof: "Prof. Dr. Bauer", 
+              desc: "Verbindungselemente, Wellen, Lager, Kupplungen." 
+            },
+            { 
+              id: "m2", 
+              name: "CAD & Digitale Produktentwicklung", 
+              cp: 5, 
+              semester: "SS", 
+              prof: "Prof. Dr. Klein", 
+              desc: "3D-Modellierung, parametrische Konstruktion, PLM-Grundlagen." 
+            }
+          ]
+        },
+        {
+          name: "Fertigung",
+          module: [
+            { 
+              id: "m3", 
+              name: "Fertigungstechnik", 
+              cp: 6, 
+              semester: "WS", 
+              prof: "Prof. Dr. Hoffmann", 
+              desc: "Urformen, Umformen, Trennen, Fügen. Prozessplanung." 
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "informatik",
+      name: "Informatik",
+      cluster: [
+        {
+          name: "Programmierung",
+          module: [
+            { 
+              id: "i1", 
+              name: "Einführung in die Programmierung", 
+              cp: 6, 
+              semester: "WS", 
+              prof: "Prof. Dr. Lang", 
+              desc: "Python/Java Grundlagen, Algorithmen, Datenstrukturen." 
+            },
+            { 
+              id: "i2", 
+              name: "Softwaretechnik", 
+              cp: 5, 
+              semester: "SS", 
+              prof: "Prof. Dr. Krause", 
+              desc: "Software-Engineering, Versionierung, Testing, Architekturmuster." 
+            }
+          ]
+        },
+        {
+          name: "Daten & KI",
+          module: [
+            { 
+              id: "i3", 
+              name: "Machine Learning Grundlagen", 
+              cp: 6, 
+              semester: "SS", 
+              prof: "Prof. Dr. Neumann", 
+              desc: "Supervised/Unsupervised Learning, neuronale Netze, Evaluation." 
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "wirtschaft",
+      name: "Wirtschaftswissenschaften",
+      cluster: [
+        {
+          name: "Management",
+          module: [
+            { 
+              id: "w1", 
+              name: "Unternehmensführung", 
+              cp: 5, 
+              semester: "WS", 
+              prof: "Prof. Dr. Richter", 
+              desc: "Strategisches Management, Organisationstheorie, Leadership." 
+            },
+            { 
+              id: "w2", 
+              name: "Projektmanagement", 
+              cp: 4, 
+              semester: "SS", 
+              prof: "Prof. Dr. Wagner", 
+              desc: "Agile & klassische Methoden, Ressourcenplanung, Risikomanagement." 
+            }
+          ]
+        },
+        {
+          name: "Finance",
+          module: [
+            { 
+              id: "w3", 
+              name: "Investition & Finanzierung", 
+              cp: 6, 
+              semester: "WS", 
+              prof: "Prof. Dr. Schulz", 
+              desc: "Kapitalwertmethode, Finanzierungsformen, Portfoliotheorie." 
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "recht",
+      name: "Recht & Regulierung",
+      cluster: [
+        {
+          name: "Wirtschaftsrecht",
+          module: [
+            { 
+              id: "r1", 
+              name: "Vertragsrecht", 
+              cp: 4, 
+              semester: "WS", 
+              prof: "Prof. Dr. Berger", 
+              desc: "BGB Allgemeiner Teil, Schuldrecht, Vertragsgestaltung." 
+            },
+            { 
+              id: "r2", 
+              name: "Datenschutzrecht", 
+              cp: 3, 
+              semester: "SS", 
+              prof: "Prof. Dr. Keller", 
+              desc: "DSGVO, ePrivacy, Compliance in der Praxis." 
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "nachhaltigkeit",
+      name: "Nachhaltigkeit & Umwelt",
+      cluster: [
+        {
+          name: "Umwelttechnik",
+          module: [
+            { 
+              id: "n1", 
+              name: "Umweltmanagement", 
+              cp: 5, 
+              semester: "SS", 
+              prof: "Prof. Dr. Lorenz", 
+              desc: "ISO 14001, Ökobilanzen, Kreislaufwirtschaft." 
+            },
+            { 
+              id: "n2", 
+              name: "Nachhaltige Produktion", 
+              cp: 5, 
+              semester: "WS", 
+              prof: "Prof. Dr. Braun", 
+              desc: "Ressourceneffizienz, Life Cycle Assessment, Green Manufacturing." 
+            }
+          ]
+        }
+      ]
+    }
+  ]
+};
+// =====================================================
+
+let state = { view: 'overview', fachbereich: null, modul: null };
+
+function countModules(fb) {
+  return fb.cluster.reduce((sum, c) => sum + c.module.length, 0);
+}
+
+function totalModules() {
+  return DATA.fachbereiche.reduce((sum, fb) => sum + countModules(fb), 0);
+}
+
+function totalCP() {
+  return DATA.fachbereiche.reduce((sum, fb) => 
+    sum + fb.cluster.reduce((s, c) => s + c.module.reduce((ss, m) => ss + m.cp, 0), 0), 0);
+}
+
+function render() {
+  const app = document.getElementById('app');
+  
+  if (state.view === 'overview') {
+    app.innerHTML = `
+      <div class="stats">
+        <div class="stat"><div class="stat-value">${DATA.fachbereiche.length}</div><div class="stat-label">Fachbereiche</div></div>
+        <div class="stat"><div class="stat-value">${totalModules()}</div><div class="stat-label">Module gesamt</div></div>
+        <div class="stat"><div class="stat-value">${totalCP()}</div><div class="stat-label">CP verfügbar</div></div>
+      </div>
+      <div class="cat-grid">
+        ${DATA.fachbereiche.map(fb => `
+          <div class="cat-card" onclick="selectFachbereich('${fb.id}')">
+            <div class="cat-title">${fb.name}</div>
+            <div class="cat-count">${countModules(fb)} Module · ${fb.cluster.length} Themen</div>
+          </div>
+        `).join('')}
+      </div>
+      <details class="edit-info">
+        <summary>Wie kann ich die Module anpassen?</summary>
+        <p>Öffne diese Datei in einem Texteditor und finde den Abschnitt <code>const DATA = { ... }</code>. Dort kannst du Fachbereiche, Cluster und Module hinzufügen oder ändern.</p>
+        <p>Jedes Modul hat diese Felder:</p>
+        <pre>{
+  id: "eindeutige-id",
+  name: "Modulname",
+  cp: 6,
+  semester: "WS",  // oder "SS"
+  prof: "Prof. Dr. Name",
+  desc: "Beschreibung..."
+}</pre>
+      </details>
+    `;
+  } else if (state.view === 'fachbereich') {
+    const fb = DATA.fachbereiche.find(f => f.id === state.fachbereich);
+    app.innerHTML = `
+      <div class="breadcrumb">
+        <span class="link" onclick="goOverview()">Alle Fachbereiche</span>
+        <span class="sep">›</span>
+        <span class="current">${fb.name}</span>
+      </div>
+      ${fb.cluster.map(cluster => `
+        <div class="cluster-section">
+          <div class="cluster-title">${cluster.name}</div>
+          <div class="module-grid">
+            ${cluster.module.map(m => `
+              <div class="module-card ${state.modul === m.id ? 'selected' : ''}" onclick="selectModul('${m.id}')">
+                <div class="module-name">${m.name}</div>
+                <div class="module-meta">
+                  <span class="badge ${m.semester === 'WS' ? 'badge-ws' : 'badge-ss'}">${m.semester}</span>
+                  <span>${m.cp} CP</span>
+                  <span>${m.prof}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+      ${state.modul ? renderDetail() : ''}
+    `;
+  }
+}
+
+function renderDetail() {
+  const fb = DATA.fachbereiche.find(f => f.id === state.fachbereich);
+  let modul = null;
+  for (const c of fb.cluster) {
+    modul = c.module.find(m => m.id === state.modul);
+    if (modul) break;
+  }
+  if (!modul) return '';
+  return `
+    <div class="detail-panel">
+      <div class="detail-header">
+        <h3 class="detail-title">${modul.name}</h3>
+        <button class="detail-close" onclick="closeDetail()">×</button>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="detail-label">Credit Points</div>
+          <div class="detail-value">${modul.cp} CP</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Semester</div>
+          <div class="detail-value">${modul.semester === 'WS' ? 'Wintersemester' : 'Sommersemester'}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Dozent/in</div>
+          <div class="detail-value">${modul.prof}</div>
+        </div>
+      </div>
+      <div class="detail-desc">${modul.desc}</div>
+    </div>
+  `;
+}
+
+function goOverview() {
+  state = { view: 'overview', fachbereich: null, modul: null };
+  render();
+}
+
+function selectFachbereich(id) {
+  state = { view: 'fachbereich', fachbereich: id, modul: null };
+  render();
+}
+
+function selectModul(id) {
+  state.modul = id;
+  render();
+  setTimeout(() => {
+    document.querySelector('.detail-panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 10);
+}
+
+function closeDetail() {
+  state.modul = null;
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
